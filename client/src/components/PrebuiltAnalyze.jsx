@@ -14,11 +14,9 @@ export default function PrebuiltAnalyze() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [pageRange, setPageRange] = useState("");
-  const [apiKey, setApiKey] = useState("ada276d975c94907aaa2950db9fd2fd0");
+  const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(true);
-  const [endpoint, setEndpoint] = useState(
-    "https://cog-di-beedoelkgnr6o.cognitiveservices.azure.com/"
-  );
+  const [endpoint, setEndpoint] = useState("");
   const [formType, setFormType] = useState("invoice");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
@@ -103,6 +101,7 @@ export default function PrebuiltAnalyze() {
 
         if (resultData.status === "succeeded") {
           analysisComplete = true;
+          console.log("Analysis results:", resultData);
           setResults(resultData.analyzeResult);
         } else if (resultData.status === "failed") {
           throw new Error(
