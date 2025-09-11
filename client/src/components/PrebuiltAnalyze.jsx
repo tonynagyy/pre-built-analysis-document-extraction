@@ -101,8 +101,66 @@ export default function PrebuiltAnalyze() {
 
         if (resultData.status === "succeeded") {
           analysisComplete = true;
-          console.log("Analysis results:", resultData);
           setResults(resultData.analyzeResult);
+
+          // Optionally, save passport data to your backend if formType is 'id' and document is a passport (example -> docType: "prebuilt:idDocument:passport")
+          if (formType === "id" && resultData.analyzeResult.documentResults) {
+            const doc = resultData.analyzeResult.documentResults[0];
+            if (doc.docType === "prebuilt:idDocument:passport") {
+              const passportData = {
+                country_region:
+                  doc.fields.MachineReadableZone.valueObject.CountryRegion
+                    ?.valueCountryRegion || null,
+                date_of_birth:
+                  doc.fields.MachineReadableZone.valueObject.DateOfBirth
+                    ?.valueDate || null,
+                date_of_expiration:
+                  doc.fields.MachineReadableZone.valueObject.DateOfExpiration
+                    ?.valueDate || null,
+                document_number:
+                  doc.fields.MachineReadableZone.valueObject.DocumentNumber
+                    ?.valueString || null,
+                first_name:
+                  doc.fields.MachineReadableZone.valueObject.FirstName
+                    ?.valueString || null,
+                last_name:
+                  doc.fields.MachineReadableZone.valueObject.LastName
+                    ?.valueString || null
+                    ? doc.fields.MachineReadableZone.valueObject.LastName
+                        ?.valueString
+                    : doc.fields.MachineReadableZone.valueObject.Surname
+                        ?.valueString || null,
+                nationality:
+                  doc.fields.MachineReadableZone.valueObject.Nationality
+                    ?.valueCountryRegion || null,
+                sex:
+                  doc.fields.MachineReadableZone.valueObject.Sex.valueString ||
+                  null,
+              };
+
+              // Send passport data to backend
+              try {
+                const saveResponse = await fetch(
+                  "http://localhost:5000/api/documents/passport",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(passportData),
+                  }
+                );
+                if (!saveResponse.ok) {
+                  throw new Error(
+                    `Failed to save passport: ${saveResponse.status} ${saveResponse.statusText}`
+                  );
+                }
+              } catch (saveError) {
+                console.error("Error saving passport:", saveError);
+                setError("Failed to save passport data to the database.");
+              }
+            }
+          }
         } else if (resultData.status === "failed") {
           throw new Error(
             `Analysis failed: ${resultData.error?.message || "Unknown error"}`
