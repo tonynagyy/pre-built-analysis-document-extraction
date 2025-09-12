@@ -1,23 +1,8 @@
-import React, { useRef, useState } from "react";
-import {
-  Upload,
-  Eye,
-  EyeOff,
-  Download,
-  RefreshCw,
-  FileText,
-  Settings,
-  Play,
-  X,
-  Image,
-  File,
-} from "lucide-react";
+import { useRef, useState } from "react";
 
-// File Upload Section Component
 export default function FileUpload({
   selectedFile,
   onFileSelect,
-  //pageRange,
   setPageRange,
 }) {
   const [fileType, setFileType] = useState("Local file");
@@ -30,7 +15,6 @@ export default function FileUpload({
     }
   };
 
-  // Handle click on the input field to open file browser
   const handleInputClick = () => {
     if (fileType === "Local file") {
       fileInputRef.current?.click();

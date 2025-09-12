@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import ResultsHeader from "./ResultsHeader";
-import TableHeader from "./TableHeader";
-import ResultItem from "./ResultItem";
+import ResultsHeader from "./Results/ResultsHeader";
+import TableHeader from "./Results/TableHeader";
+import ResultItem from "./Results/ResultItem";
 import {
   downloadJSON,
   downloadCSV,
   flattenObject,
-} from "../utils/downloadLocal";
+} from "../../utils/downloadLocal";
 import { FileText } from "lucide-react";
 
 export default function ResultsDisplay({
@@ -30,27 +30,29 @@ export default function ResultsDisplay({
     const processedResults = [];
 
     if (document.fields) {
-      Object.entries(document.fields.MachineReadableZone.valueObject).forEach(
-        ([fieldName, fieldData]) => {
-          processedResults.push({
-            field: fieldName,
-            value:
-              fieldData.valueString ||
-              fieldData.valueDate ||
-              fieldData.valueCountryRegion ||
-              fieldData.valuePhoneNumber ||
-              fieldData.valueTime ||
-              fieldData.valueInteger ||
-              fieldData.valueNumber ||
-              fieldData.content ||
-              String(fieldData.value || ""),
-            confidence: document.fields.MachineReadableZone.confidence || 0,
-            type: fieldData.type || "text",
-            boundingBox: fieldData.boundingBox || null,
-            page: fieldData.page || 1,
-          });
-        }
-      );
+      if (document.docType === "prebuilt:idDocument:passport") {
+        Object.entries(document.fields.MachineReadableZone.valueObject).forEach(
+          ([fieldName, fieldData]) => {
+            processedResults.push({
+              field: fieldName,
+              value:
+                fieldData.valueString ||
+                fieldData.valueDate ||
+                fieldData.valueCountryRegion ||
+                fieldData.valuePhoneNumber ||
+                fieldData.valueTime ||
+                fieldData.valueInteger ||
+                fieldData.valueNumber ||
+                fieldData.content ||
+                String(fieldData.value || ""),
+              confidence: document.fields.MachineReadableZone.confidence || 0,
+              type: fieldData.type || "text",
+              boundingBox: fieldData.boundingBox || null,
+              page: fieldData.page || 1,
+            });
+          }
+        );
+      }
     }
 
     return processedResults.sort((a, b) => b.confidence - a.confidence);

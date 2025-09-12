@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Download, ChevronDown } from "lucide-react";
 
 export default function DownloadDropdown({ onDownloadJSON, onDownloadCSV }) {
