@@ -21,6 +21,7 @@ export default function PrebuiltAnalyze() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [databaseError, setDatabaseError] = useState(null);
 
   const handleFileSelect = (file) => {
     setSelectedFile(file);
@@ -157,7 +158,9 @@ export default function PrebuiltAnalyze() {
                 }
               } catch (saveError) {
                 console.error("Error saving passport:", saveError);
-                setError("Failed to save passport data to the database.");
+                setDatabaseError(
+                  "Failed to save passport data to the database."
+                );
               }
             }
           }
@@ -192,6 +195,7 @@ export default function PrebuiltAnalyze() {
           results={results}
           error={error}
           isAnalyzing={isAnalyzing}
+          databaseError={databaseError}
         />
 
         <RightSidebar
@@ -211,6 +215,7 @@ export default function PrebuiltAnalyze() {
           isAnalyzing={isAnalyzing}
           results={results}
           error={error}
+          databaseError={databaseError}
         />
       </div>
     </div>

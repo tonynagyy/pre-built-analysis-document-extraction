@@ -9,6 +9,7 @@ export default function MainContentArea({
   error,
   isAnalyzing,
   selectedFile,
+  databaseError,
 }) {
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
 
@@ -134,6 +135,12 @@ export default function MainContentArea({
       {error && (
         <div className="px-4 py-2 bg-red-900 border-t border-red-700 text-red-200 text-sm flex-shrink-0">
           Error: {error}
+        </div>
+      )}
+
+      {databaseError && (
+        <div className="px-4 py-2 bg-red-900 border-t border-red-700 text-red-200 text-sm flex-shrink-0">
+          Error: {databaseError}
         </div>
       )}
 

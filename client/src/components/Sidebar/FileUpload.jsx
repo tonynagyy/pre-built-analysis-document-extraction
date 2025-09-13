@@ -6,6 +6,7 @@ export default function FileUpload({
   setPageRange,
 }) {
   const [fileType, setFileType] = useState("Local file");
+  const [pageRangeChecked, setPageRangeChecked] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleFileInput = (e) => {
@@ -74,13 +75,30 @@ export default function FileUpload({
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
+            value={pageRangeChecked}
             id="pageRange"
             className="w-4 h-4 rounded border border-gray-600"
-            onChange={(e) => setPageRange(e.target.checked ? "1" : "")}
+            onChange={(e) => {
+              setPageRangeChecked(e.target.checked);
+              if (!e.target.checked) {
+                setPageRange("");
+              } else {
+                setPageRange("1");
+              }
+            }}
           />
           <label htmlFor="pageRange" className="text-sm text-gray-300">
             Page range
           </label>
+
+          <input
+            type="text"
+            placeholder="e.g., 1-3"
+            onChange={(e) => setPageRange(e.target.value)}
+            disabled={!pageRangeChecked}
+            className="w-20 bg-gray-700 text-white text-sm px-3 py-2 rounded border border-gray-600 placeholder-gray-400 focus:border-blue-500 focus:outline-none disabled:opacity-50"
+            value={pageRangeChecked ? undefined : ""}
+          />
         </div>
       </div>
     </div>
