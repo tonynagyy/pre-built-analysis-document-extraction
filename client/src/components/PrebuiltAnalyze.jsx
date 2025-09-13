@@ -44,6 +44,7 @@ export default function PrebuiltAnalyze() {
     }
 
     setIsAnalyzing(true);
+    setDatabaseError(null);
     setError(null);
     setResults(null);
 
@@ -110,6 +111,8 @@ export default function PrebuiltAnalyze() {
             const doc = resultData.analyzeResult.documentResults[0];
             if (doc.docType === "prebuilt:idDocument:passport") {
               const passportData = {
+                machine_readable_zone:
+                  doc.fields.MachineReadableZone?.text || null,
                 country_region:
                   doc.fields.MachineReadableZone.valueObject.CountryRegion
                     ?.valueCountryRegion || null,
