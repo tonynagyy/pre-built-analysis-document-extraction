@@ -10,6 +10,7 @@ export default function MainContentArea({
   isAnalyzing,
   selectedFile,
   databaseError,
+  ctxThickness,
 }) {
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
 
@@ -106,7 +107,11 @@ export default function MainContentArea({
         )}
 
         {showBoundingBoxes && results && isImageFile(selectedFile) ? (
-          <ImageWithBoundingBoxes imageUrl={filePreview} results={results} />
+          <ImageWithBoundingBoxes
+            imageUrl={filePreview}
+            results={results}
+            ctxThickness={ctxThickness}
+          />
         ) : isPdfFile(selectedFile) ? (
           <div className="flex flex-col items-center justify-center text-gray-400">
             <FileText className="w-16 h-16 mb-4" />

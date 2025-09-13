@@ -4,6 +4,7 @@ export default function ResultItem({
   confidence,
   pageNumber = 1,
   text,
+  setCtxThickness,
 }) {
   const getConfidenceColor = (conf) => {
     if (conf >= 0.9) return "bg-green-500";
@@ -15,8 +16,22 @@ export default function ResultItem({
     return `${Math.round(conf * 100)}%`;
   };
 
+  const handleMouseEnter = () => {
+    // Optionally, you can implement hover effects here
+    setCtxThickness(10);
+  };
+
+  const handleMouseLeave = () => {
+    // Optionally, you can implement hover effects here
+    setCtxThickness(6);
+  };
+
   return (
-    <div className="hover:bg-gray-700">
+    <div
+      className="hover:bg-gray-700"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="grid grid-cols-15 gap-2 p-3 text-xs">
         <div className="col-span-2 text-gray-400">{pageNumber}</div>
         <div className="col-span-6 text-white font-mono text-xs break-all">

@@ -14,6 +14,7 @@ export default function ResultsDisplay({
   isAnalyzing,
   error,
   onFieldClick,
+  setCtxThickness,
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -192,6 +193,7 @@ export default function ResultsDisplay({
                 results?.documentResults?.[0]?.fields?.MachineReadableZone
                   ?.text || " "
               }
+              setCtxThickness={setCtxThickness}
             />
           </div>
         </>

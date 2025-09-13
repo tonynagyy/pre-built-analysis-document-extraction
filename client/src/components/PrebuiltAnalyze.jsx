@@ -22,6 +22,7 @@ export default function PrebuiltAnalyze() {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [databaseError, setDatabaseError] = useState(null);
+  const [ctxThickness, setCtxThickness] = useState(2);
 
   const handleFileSelect = (file) => {
     setSelectedFile(file);
@@ -199,6 +200,7 @@ export default function PrebuiltAnalyze() {
           error={error}
           isAnalyzing={isAnalyzing}
           databaseError={databaseError}
+          ctxThickness={ctxThickness}
         />
 
         <RightSidebar
@@ -219,6 +221,7 @@ export default function PrebuiltAnalyze() {
           results={results}
           error={error}
           databaseError={databaseError}
+          setCtxThickness={setCtxThickness}
         />
       </div>
     </div>

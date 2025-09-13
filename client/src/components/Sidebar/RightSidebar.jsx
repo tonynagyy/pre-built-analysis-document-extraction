@@ -22,6 +22,7 @@ export default function RightSidebar({
   results,
   error,
   databaseError,
+  setCtxThickness,
 }) {
   const canAnalyze = selectedFile && apiKey && endpoint;
 
@@ -67,6 +68,7 @@ export default function RightSidebar({
             isAnalyzing={isAnalyzing}
             error={error}
             databaseError={databaseError}
+            setCtxThickness={setCtxThickness}
           />
         </div>
       </div>
