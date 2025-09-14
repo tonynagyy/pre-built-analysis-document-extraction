@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import RightSidebar from "./RightSidebar";
+import RightSidebar from "./Sidebar/RightSidebar";
 import MainContentArea from "./MainContentArea";
 import Header from "./Header";
 
@@ -15,12 +15,14 @@ export default function PrebuiltAnalyze() {
   const [filePreview, setFilePreview] = useState(null);
   const [pageRange, setPageRange] = useState("");
   const [apiKey, setApiKey] = useState("");
-  const [showApiKey, setShowApiKey] = useState(true);
+  const [showApiKey, setShowApiKey] = useState(false);
   const [endpoint, setEndpoint] = useState("");
   const [formType, setFormType] = useState("invoice");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [databaseError, setDatabaseError] = useState(null);
+  const [ctxThickness, setCtxThickness] = useState(2);
 
   const handleFileSelect = (file) => {
     setSelectedFile(file);
@@ -30,6 +32,10 @@ export default function PrebuiltAnalyze() {
       setFilePreview(e.target.result);
     };
     reader.readAsDataURL(file);
+
+    setError(null);
+    setResults(null);
+    setPageRange("");
   };
 
   const handleAnalysis = async () => {
@@ -39,6 +45,7 @@ export default function PrebuiltAnalyze() {
     }
 
     setIsAnalyzing(true);
+    setDatabaseError(null);
     setError(null);
     setResults(null);
 
@@ -46,14 +53,12 @@ export default function PrebuiltAnalyze() {
       // Clean up endpoint URL
       const cleanEndpoint = endpoint.replace(/\/$/, "");
 
-      // Construct the API URL based on form type
       const apiUrl = `${cleanEndpoint}/formrecognizer/v2.1/prebuilt/${FORM_TYPES[formType]}/analyze?includeTextDetails=true`;
 
       // Convert file to base64 for JSON payload (alternative approach)
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      // First, submit the document for analysis
       const analyzeResponse = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -69,7 +74,6 @@ export default function PrebuiltAnalyze() {
         );
       }
 
-      // Get the operation location from the response headers
       const operationLocation =
         analyzeResponse.headers.get("Operation-Location");
 
@@ -103,11 +107,13 @@ export default function PrebuiltAnalyze() {
           analysisComplete = true;
           setResults(resultData.analyzeResult);
 
-          // Optionally, save passport data to your backend if formType is 'id' and document is a passport (example -> docType: "prebuilt:idDocument:passport")
+          // saving the passport data to the backend
           if (formType === "id" && resultData.analyzeResult.documentResults) {
             const doc = resultData.analyzeResult.documentResults[0];
             if (doc.docType === "prebuilt:idDocument:passport") {
               const passportData = {
+                machine_readable_zone:
+                  doc.fields.MachineReadableZone?.text || null,
                 country_region:
                   doc.fields.MachineReadableZone.valueObject.CountryRegion
                     ?.valueCountryRegion || null,
@@ -138,7 +144,6 @@ export default function PrebuiltAnalyze() {
                   null,
               };
 
-              // Send passport data to backend
               try {
                 const saveResponse = await fetch(
                   "http://localhost:5000/api/documents/passport",
@@ -157,7 +162,9 @@ export default function PrebuiltAnalyze() {
                 }
               } catch (saveError) {
                 console.error("Error saving passport:", saveError);
-                setError("Failed to save passport data to the database.");
+                setDatabaseError(
+                  "Failed to save passport data to the database."
+                );
               }
             }
           }
@@ -192,6 +199,8 @@ export default function PrebuiltAnalyze() {
           results={results}
           error={error}
           isAnalyzing={isAnalyzing}
+          databaseError={databaseError}
+          ctxThickness={ctxThickness}
         />
 
         <RightSidebar
@@ -211,6 +220,8 @@ export default function PrebuiltAnalyze() {
           isAnalyzing={isAnalyzing}
           results={results}
           error={error}
+          databaseError={databaseError}
+          setCtxThickness={setCtxThickness}
         />
       </div>
     </div>

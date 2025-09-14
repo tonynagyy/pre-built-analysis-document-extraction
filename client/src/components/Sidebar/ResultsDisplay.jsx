@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import ResultsHeader from "./ResultsHeader";
-import TableHeader from "./TableHeader";
-import ResultItem from "./ResultItem";
+import ResultsHeader from "./Results/ResultsHeader";
+import TableHeader from "./Results/TableHeader";
+import ResultItem from "./Results/ResultItem";
 import {
   downloadJSON,
   downloadCSV,
   flattenObject,
-} from "../utils/downloadLocal";
+} from "../../utils/downloadLocal";
 import { FileText } from "lucide-react";
 
 export default function ResultsDisplay({
@@ -14,10 +14,12 @@ export default function ResultsDisplay({
   isAnalyzing,
   error,
   onFieldClick,
+  setCtxThickness,
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const processResults = (analyzeResults) => {
+    console.log("Raw analyze results:", analyzeResults);
     if (
       !analyzeResults ||
       !analyzeResults.documentResults ||
@@ -30,27 +32,30 @@ export default function ResultsDisplay({
     const processedResults = [];
 
     if (document.fields) {
-      Object.entries(document.fields.MachineReadableZone.valueObject).forEach(
-        ([fieldName, fieldData]) => {
-          processedResults.push({
-            field: fieldName,
-            value:
-              fieldData.valueString ||
-              fieldData.valueDate ||
-              fieldData.valueCountryRegion ||
-              fieldData.valuePhoneNumber ||
-              fieldData.valueTime ||
-              fieldData.valueInteger ||
-              fieldData.valueNumber ||
-              fieldData.content ||
-              String(fieldData.value || ""),
-            confidence: document.fields.MachineReadableZone.confidence || 0,
-            type: fieldData.type || "text",
-            boundingBox: fieldData.boundingBox || null,
-            page: fieldData.page || 1,
-          });
-        }
-      );
+      if (document.docType === "prebuilt:idDocument:passport") {
+        Object.entries(document.fields.MachineReadableZone.valueObject).forEach(
+          ([fieldName, fieldData]) => {
+            processedResults.push({
+              field: fieldName,
+              value:
+                fieldData.valueString ||
+                fieldData.valueDate ||
+                fieldData.valueCountryRegion ||
+                fieldData.valuePhoneNumber ||
+                fieldData.valueTime ||
+                fieldData.valueInteger ||
+                fieldData.valueNumber ||
+                fieldData.content ||
+                String(fieldData.value || ""),
+              confidence: 0, // No confidence score for MRZ subfields
+              type: fieldData.type || "text",
+              boundingBox: fieldData.boundingBox || null,
+              page: fieldData.page || 1,
+              text: fieldData.text || "",
+            });
+          }
+        );
+      }
     }
 
     return processedResults.sort((a, b) => b.confidence - a.confidence);
@@ -151,7 +156,7 @@ export default function ResultsDisplay({
       <ResultsHeader
         onDownloadJSON={handleDownloadJSON}
         onDownloadCSV={handleDownloadCSV}
-        resultCount={processedResults.length}
+        resultCount={processedResults.length + 1}
         isExpanded={isExpanded}
         setIsExpanded={setIsExpanded}
       />
@@ -159,7 +164,7 @@ export default function ResultsDisplay({
       {isExpanded && (
         <>
           <TableHeader />
-          <div className="max-h-96 overflow-y-auto">
+          <div className="">
             {processedResults.map((result, index) => (
               <div
                 key={index}
@@ -171,9 +176,25 @@ export default function ResultsDisplay({
                   value={result.value}
                   confidence={result.confidence}
                   pageNumber={result.page}
+                  text={result.text}
                 />
               </div>
             ))}
+
+            <ResultItem
+              field="MachineReadableZone"
+              value={" "}
+              confidence={
+                results?.documentResults?.[0]?.fields?.MachineReadableZone
+                  ?.confidence || 0
+              }
+              pageNumber={1}
+              text={
+                results?.documentResults?.[0]?.fields?.MachineReadableZone
+                  ?.text || " "
+              }
+              setCtxThickness={setCtxThickness}
+            />
           </div>
         </>
       )}

@@ -6,6 +6,7 @@ export default function ImageWithBoundingBoxes({
   results,
   onImageGenerated,
   displayInMainArea,
+  ctxThickness,
 }) {
   const canvasRef = useRef(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState(null);
@@ -16,6 +17,8 @@ export default function ImageWithBoundingBoxes({
     if (confidence >= 0.7) return "#eab308"; // yellow-500
     return "#ef4444"; // red-500
   };
+  // color for blue boxes
+  // const getFieldColor = () => "#3b82f6"; // blue-500
 
   const extractBoundingBoxes = (analyzeResults) => {
     const boundingBoxes = [];
@@ -29,6 +32,24 @@ export default function ImageWithBoundingBoxes({
     }
 
     const readResult = analyzeResults.readResults[0];
+
+    // Extract MachineReadableZone bounding box if available
+    if (analyzeResults.documentResults) {
+      const document = analyzeResults.documentResults[0];
+      if (document.fields && document.fields.MachineReadableZone) {
+        const mrzField = document.fields.MachineReadableZone;
+        if (mrzField.boundingBox && mrzField.boundingBox.length >= 8) {
+          boundingBoxes.push({
+            id: "MachineReadableZone",
+            type: "field",
+            boundingBox: mrzField.boundingBox,
+            text: mrzField.text || "",
+            confidence: mrzField.confidence || 0.9,
+            page: mrzField.page || 1,
+          });
+        }
+      }
+    }
 
     // Extract from lines
     if (readResult.lines) {
@@ -69,73 +90,89 @@ export default function ImageWithBoundingBoxes({
     return boundingBoxes;
   };
 
-  const drawBoundingBoxes = useCallback((canvas, image, boundingBoxes) => {
-    const ctx = canvas.getContext("2d");
+  const drawBoundingBoxes = useCallback(
+    (canvas, image, boundingBoxes) => {
+      const ctx = canvas.getContext("2d");
 
-    // Set canvas size to match image
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
+      // Set canvas size to match image
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
 
-    // Draw the original image
-    ctx.drawImage(image, 0, 0);
+      // Draw the original image
+      ctx.drawImage(image, 0, 0);
 
-    // Draw bounding boxes
-    boundingBoxes.forEach((box) => {
-      const coords = box.boundingBox;
-      if (coords.length < 8) return;
+      // Draw bounding boxes
+      boundingBoxes.forEach((box) => {
+        const coords = box.boundingBox;
+        if (coords.length < 8) return;
 
-      // Extract coordinate pairs [x1,y1,x2,y2,x3,y3,x4,y4]
-      const points = [];
-      for (let i = 0; i < coords.length; i += 2) {
-        points.push({ x: coords[i], y: coords[i + 1] });
-      }
+        // Extract coordinate pairs [x1,y1,x2,y2,x3,y3,x4,y4]
+        const points = [];
+        for (let i = 0; i < coords.length; i += 2) {
+          points.push({ x: coords[i], y: coords[i + 1] });
+        }
 
-      // Set stroke style based on confidence and type
-      ctx.strokeStyle = getConfidenceColor(box.confidence);
-      ctx.lineWidth = box.type === "line" ? 2 : 1;
-      ctx.globalAlpha = 0.8;
+        // Set stroke style based on confidence and type
+        ctx.strokeStyle =
+          box.type == "field" ? "#3b82f6" : getConfidenceColor(box.confidence);
+        ctx.lineWidth =
+          box.type === "field" ? ctxThickness : box.type === "line" ? 2 : 1;
 
-      // Draw polygon
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
-      ctx.closePath();
-      ctx.stroke();
+        ctx.globalAlpha = 0.8;
 
-      // Draw text label for lines (not words to avoid clutter)
-      if (box.type === "line" && box.text) {
-        ctx.font = "12px Arial";
-        ctx.fillStyle = getConfidenceColor(box.confidence);
-        ctx.globalAlpha = 0.9;
+        // Draw polygon
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.closePath();
+        ctx.stroke();
 
-        // Position label above the bounding box
-        const minY = Math.min(...points.map((p) => p.y));
-        const minX = Math.min(...points.map((p) => p.x));
+        if (box.type === "field") {
+          ctx.fillStyle =
+            ctxThickness === 10
+              ? "rgba(255, 224, 178, 0.3)"
+              : "rgba(255, 224, 178, 0.1)";
+        } else {
+          ctx.fillStyle = "rgba(255, 224, 178, 0.1)";
+        }
+        ctx.fill();
 
-        // Add background for text
-        const textMetrics = ctx.measureText(
-          box.text.substring(0, 30) + (box.text.length > 30 ? "..." : "")
-        );
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-        ctx.fillRect(minX, minY - 18, textMetrics.width + 4, 16);
+        // Draw text label for lines (not words to avoid clutter)
+        if (box.type === "line" && box.text) {
+          ctx.font = "12px Arial";
+          ctx.fillStyle = getConfidenceColor(box.confidence);
+          ctx.globalAlpha = 0.9;
 
-        // Draw text
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(
-          box.text.substring(0, 30) + (box.text.length > 30 ? "..." : ""),
-          minX + 2,
-          minY - 6
-        );
-      }
+          // Position label above the bounding box
+          const minY = Math.min(...points.map((p) => p.y));
+          const minX = Math.min(...points.map((p) => p.x));
 
-      ctx.globalAlpha = 1.0;
-    });
+          // Add background for text
+          const textMetrics = ctx.measureText(
+            box.text.substring(0, 30) + (box.text.length > 30 ? "..." : "")
+          );
+          ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+          ctx.fillRect(minX, minY - 18, textMetrics.width + 4, 16);
 
-    // Add legend
-    drawLegend(ctx, canvas.width, canvas.height);
-  }, []);
+          // Draw text
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(
+            box.text.substring(0, 30) + (box.text.length > 30 ? "..." : ""),
+            minX + 2,
+            minY - 6
+          );
+        }
+
+        ctx.globalAlpha = 1.0;
+      });
+
+      // Add legend
+      drawLegend(ctx, canvas.width, canvas.height);
+    },
+    [ctxThickness]
+  );
 
   const drawLegend = (ctx) => {
     const legendItems = [

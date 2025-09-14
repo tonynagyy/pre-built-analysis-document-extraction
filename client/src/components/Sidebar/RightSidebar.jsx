@@ -21,11 +21,13 @@ export default function RightSidebar({
   isAnalyzing,
   results,
   error,
+  databaseError,
+  setCtxThickness,
 }) {
   const canAnalyze = selectedFile && apiKey && endpoint;
 
   return (
-    <div className="w-85 bg-gray-800 border-l border-gray-700 flex flex-col">
+    <div className="w-100 bg-gray-800 border-l border-gray-700 flex flex-col">
       <div className="p-4 border-b border-gray-700 flex-shrink-0">
         <div className="flex items-center space-x-2">
           <FileText className="w-5 h-5 text-blue-400" />
@@ -36,7 +38,7 @@ export default function RightSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
+        <div className="p-2 space-y-6">
           <FileUpload
             selectedFile={selectedFile}
             onFileSelect={onFileSelect}
@@ -65,6 +67,8 @@ export default function RightSidebar({
             results={results}
             isAnalyzing={isAnalyzing}
             error={error}
+            databaseError={databaseError}
+            setCtxThickness={setCtxThickness}
           />
         </div>
       </div>
